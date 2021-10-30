@@ -5,43 +5,39 @@ class Block {
         this.timestamp = timestamp;
         this.data = data;
         this.prevHash = "";
-        this.hash = this.getHash();
         this.nonce = 0;
     }
 
-    getHash() {
+    get hash() {
         return SHA256(this.prevHash + this.timestamp + JSON.stringify(this.data) + this.nonce);
     }
 
     mine(difficulty) {
-        while(this.hash.substring(0, difficulty) !== Array(difficulty + 1).join("0")) {
+        while(this.hash.substring(0, difficulty) !== "0".repeat(difficulty)) {
             this.nonce++;
-            this.hash = this.getHash();
         }
     }
 }
 
-class Blockchain {
+class Blockchain extends Array {
     constructor() {
-        this.chain = [new Block()];
-        this.difficulty = 1;
+        super(new Block()).difficulty = 1;
     }
 
-    getLastBlock() {
-        return this.chain[this.chain.length - 1];
+    get lastBlock() {
+        return this[this.length - 1];
     }
 
-    addBlock(block) {
-        block.prevHash = this.getLastBlock().hash;
-        block.hash = block.getHash();
+    push(block) {
+        block.prevHash = this.lastBlock.hash;
         block.mine(this.difficulty);
-        this.chain.push(block);
+        return super.push(block);
     }
 
     isValid() {
-        for (let i = 1; i < this.chain.length; i++) {
-            const currentBlock = this.chain[i];
-            const prevBlock = this.chain[i-1];
+        for (let i = 1; i < this.length; i++) {
+            const currentBlock = this[i];
+            const prevBlock = this[i-1];
 
             if (currentBlock.hash !== currentBlock.getHash() || prevBlock.hash !== currentBlock.prevHash) {
                 return false;
